@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useData } from "@/contexts/DataContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,69 +9,16 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Receipt, Download, Eye, Calendar, DollarSign, Search } from "lucide-react"
 
-interface Invoice {
-  id: string
-  number: string
-  vendor: string
-  amount: number
-  date: string
-  dueDate: string
-  status: "paid" | "pending" | "overdue"
-  category: string
-}
-
-const mockInvoices: Invoice[] = [
-  {
-    id: "1",
-    number: "INV-2024-001",
-    vendor: "TechCorp Solutions",
-    amount: 5250.0,
-    date: "2024-01-15",
-    dueDate: "2024-02-15",
-    status: "pending",
-    category: "Software",
-  },
-  {
-    id: "2",
-    number: "INV-2024-002",
-    vendor: "Office Supplies Inc",
-    amount: 890.5,
-    date: "2024-01-10",
-    dueDate: "2024-02-10",
-    status: "paid",
-    category: "Supplies",
-  },
-  {
-    id: "3",
-    number: "INV-2023-045",
-    vendor: "Construction Materials Ltd",
-    amount: 12750.0,
-    date: "2023-12-20",
-    dueDate: "2024-01-20",
-    status: "overdue",
-    category: "Materials",
-  },
-  {
-    id: "4",
-    number: "INV-2024-003",
-    vendor: "Professional Services Co",
-    amount: 3200.0,
-    date: "2024-01-12",
-    dueDate: "2024-02-12",
-    status: "pending",
-    category: "Services",
-  },
-]
-
-interface InvoicesSectionProps {
-  userType: "shareholder" | "team"
-}
-
-export default function InvoicesSection({ userType }: InvoicesSectionProps) {
-  const [invoices] = useState<Invoice[]>(mockInvoices)
+export default function InvoicesSection() {
+  const { invoices, updateInvoice } = useData()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("all")
   const [filterCategory, setFilterCategory] = useState<string>("all")
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const filteredInvoices = invoices.filter((invoice) => {
     const matchesSearch =
@@ -99,6 +47,17 @@ export default function InvoicesSection({ userType }: InvoicesSectionProps) {
   const pendingAmount = filteredInvoices
     .filter((invoice) => invoice.status === "pending")
     .reduce((sum, invoice) => sum + invoice.amount, 0)
+
+  const formatDate = (dateString: string) => {
+    if (!isClient) return dateString
+    
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).format(date)
+  }
 
   return (
     <div className="space-y-6">
@@ -204,10 +163,10 @@ export default function InvoicesSection({ userType }: InvoicesSectionProps) {
                     <div className="flex items-center space-x-4 mt-1">
                       <p className="text-sm text-muted-foreground">
                         <Calendar className="w-4 h-4 inline mr-1" />
-                        {new Date(invoice.date).toLocaleDateString()}
+                        {formatDate(invoice.date)}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Due: {new Date(invoice.dueDate).toLocaleDateString()}
+                        Due: {formatDate(invoice.dueDate)}
                       </p>
                       <Badge variant="outline">{invoice.category}</Badge>
                     </div>
@@ -226,6 +185,15 @@ export default function InvoicesSection({ userType }: InvoicesSectionProps) {
                     <Download className="w-4 h-4 mr-1" />
                     Download
                   </Button>
+                  {invoice.status === "pending" && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => updateInvoice(invoice.id, { status: "paid" })}
+                    >
+                      Mark Paid
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}

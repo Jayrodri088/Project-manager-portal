@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
+import { useData } from "@/contexts/DataContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -20,75 +21,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Building2, Phone, Mail, MapPin, Plus, Search, Star } from "lucide-react"
 import { gsap } from "gsap"
-
-interface ServiceProvider {
-  id: string
-  name: string
-  company: string
-  category: string
-  email: string
-  phone: string
-  location: string
-  rating: number
-  status: "active" | "inactive"
-  description: string
-  avatar?: string
-}
-
-const mockProviders: ServiceProvider[] = [
-  {
-    id: "1",
-    name: "John Construction",
-    company: "BuildRight LLC",
-    category: "Construction",
-    email: "john@buildright.com",
-    phone: "+1 (555) 123-4567",
-    location: "New York, NY",
-    rating: 4.8,
-    status: "active",
-    description: "Specialized in commercial construction and renovation projects.",
-  },
-  {
-    id: "2",
-    name: "Sarah Tech Solutions",
-    company: "TechCorp Inc",
-    category: "IT Services",
-    email: "sarah@techcorp.com",
-    phone: "+1 (555) 987-6543",
-    location: "San Francisco, CA",
-    rating: 4.9,
-    status: "active",
-    description: "Full-stack development and IT infrastructure management.",
-  },
-  {
-    id: "3",
-    name: "Mike Design Studio",
-    company: "Creative Minds",
-    category: "Design",
-    email: "mike@creativeminds.com",
-    phone: "+1 (555) 456-7890",
-    location: "Los Angeles, CA",
-    rating: 4.7,
-    status: "active",
-    description: "UI/UX design and branding for digital products.",
-  },
-  {
-    id: "4",
-    name: "Legal Associates",
-    company: "Law Firm Partners",
-    category: "Legal",
-    email: "contact@lawfirm.com",
-    phone: "+1 (555) 321-0987",
-    location: "Chicago, IL",
-    rating: 4.6,
-    status: "inactive",
-    description: "Corporate law and contract management services.",
-  },
-]
-
-interface ServiceProvidersProps {
-  userType: "shareholder" | "team"
-}
 
 // Custom Avatar Component with Initials
 const ProviderAvatar = ({ name, category }: { name: string; category: string }) => {
@@ -121,8 +53,8 @@ const ProviderAvatar = ({ name, category }: { name: string; category: string }) 
   )
 }
 
-export default function ServiceProviders({ userType }: ServiceProvidersProps) {
-  const [providers, setProviders] = useState<ServiceProvider[]>(mockProviders)
+export default function ServiceProviders() {
+  const { serviceProviders, addServiceProvider } = useData()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategory, setFilterCategory] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
@@ -138,7 +70,7 @@ export default function ServiceProviders({ userType }: ServiceProvidersProps) {
     description: "",
   })
 
-  const filteredProviders = providers.filter((provider) => {
+  const filteredProviders = serviceProviders.filter((provider) => {
     const matchesSearch =
       provider.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       provider.company.toLowerCase().includes(searchTerm.toLowerCase())
@@ -198,13 +130,11 @@ export default function ServiceProviders({ userType }: ServiceProvidersProps) {
 
   const handleAddProvider = (e: React.FormEvent) => {
     e.preventDefault()
-    const provider: ServiceProvider = {
-      id: Math.random().toString(36).substr(2, 9),
+    addServiceProvider({
       ...newProvider,
       rating: 0,
       status: "active",
-    }
-    setProviders([...providers, provider])
+    })
     setNewProvider({
       name: "",
       company: "",
@@ -246,8 +176,7 @@ export default function ServiceProviders({ userType }: ServiceProvidersProps) {
                 Manage your network of service providers and contractors
               </CardDescription>
             </div>
-            {userType === "shareholder" && (
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="w-4 h-4 mr-2" />
@@ -344,7 +273,6 @@ export default function ServiceProviders({ userType }: ServiceProvidersProps) {
                   </form>
                 </DialogContent>
               </Dialog>
-            )}
           </div>
         </CardHeader>
         <CardContent>

@@ -3,64 +3,50 @@
 import type React from "react"
 
 import { useState } from "react"
+import { DataProvider, useData } from "@/contexts/DataContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Building2, Users, Shield } from "lucide-react"
+import { Building2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [userType, setUserType] = useState<"shareholder" | "team">("shareholder")
   const router = useRouter()
+  const { createUserProfile } = useData()
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     // Simulate login - in real app, this would authenticate with backend
-    localStorage.setItem("userType", userType)
     localStorage.setItem("userEmail", email)
+    
+    // Create user profile if it doesn't exist
+    createUserProfile(email)
+    
     router.push("/dashboard")
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-light dark:bg-gradient-to-br dark:from-navy dark:via-navy dark:to-teal flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <Card className="backdrop-blur-sm bg-white/10 dark:bg-gray-900/20 border-white/20 dark:border-gray-700/30">
+        <Card className="backdrop-blur-sm bg-white/90 dark:bg-navy/90 border-teal/30 dark:border-teal/50 shadow-xl">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="mx-auto mb-4 w-12 h-12 bg-gradient-to-r from-teal to-pink rounded-lg flex items-center justify-center shadow-lg">
               <Building2 className="w-6 h-6 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold text-white">Project Portal</CardTitle>
-            <CardDescription className="text-gray-300">Access your project management dashboard</CardDescription>
+            <CardTitle className="text-2xl font-bold text-navy dark:text-white">Project Portal</CardTitle>
+            <CardDescription className="text-navy/70 dark:text-light/70">Access your project management dashboard</CardDescription>
             <div className="flex justify-center mt-4">
               <ThemeToggle />
             </div>
           </CardHeader>
           <CardContent>
-            <Tabs
-              value={userType}
-              onValueChange={(value) => setUserType(value as "shareholder" | "team")}
-              className="mb-6"
-            >
-              <TabsList className="grid w-full grid-cols-2 bg-white/10">
-                <TabsTrigger value="shareholder" className="data-[state=active]:bg-white/20">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Shareholder
-                </TabsTrigger>
-                <TabsTrigger value="team" className="data-[state=active]:bg-white/20">
-                  <Users className="w-4 h-4 mr-2" />
-                  Team Member
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white">
+                <Label htmlFor="email" className="text-navy dark:text-white">
                   Email
                 </Label>
                 <Input
@@ -69,12 +55,12 @@ export default function LoginPage() {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  className="bg-white dark:bg-white/10 border-teal/50 dark:border-teal/30 text-navy dark:text-white placeholder:text-navy/50 dark:placeholder:text-light/50 focus:border-teal focus:ring-teal"
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-white">
+                <Label htmlFor="password" className="text-navy dark:text-white">
                   Password
                 </Label>
                 <Input
@@ -83,13 +69,13 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                  className="bg-white dark:bg-white/10 border-teal/50 dark:border-teal/30 text-navy dark:text-white placeholder:text-navy/50 dark:placeholder:text-light/50 focus:border-teal focus:ring-teal"
                   required
                 />
               </div>
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-teal to-pink hover:from-teal/90 hover:to-pink/90 text-white font-semibold shadow-lg transition-all duration-200"
               >
                 Sign In
               </Button>
@@ -98,5 +84,13 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <DataProvider>
+      <LoginContent />
+    </DataProvider>
   )
 }

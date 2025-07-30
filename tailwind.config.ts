@@ -13,6 +13,12 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+  			// Custom color palette
+  			navy: '#364F6B',
+  			teal: '#3FC1C9', 
+  			light: '#F5F5F5',
+  			pink: '#FC5185',
+  			// shadcn/ui variables
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

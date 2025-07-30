@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useData } from "@/contexts/DataContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,64 +9,16 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FileText, Download, Eye, Calendar, Search } from "lucide-react"
 
-interface Report {
-  id: string
-  title: string
-  date: string
-  author: string
-  status: "approved" | "pending" | "revision"
-  type: "weekly" | "monthly" | "milestone"
-  size: string
-}
-
-const mockReports: Report[] = [
-  {
-    id: "1",
-    title: "Weekly Progress Report #24",
-    date: "2024-01-15",
-    author: "John Smith",
-    status: "approved",
-    type: "weekly",
-    size: "2.4 MB",
-  },
-  {
-    id: "2",
-    title: "Monthly Summary - December 2023",
-    date: "2024-01-01",
-    author: "Sarah Johnson",
-    status: "pending",
-    type: "monthly",
-    size: "5.1 MB",
-  },
-  {
-    id: "3",
-    title: "Milestone 2 Completion Report",
-    date: "2023-12-28",
-    author: "Mike Davis",
-    status: "approved",
-    type: "milestone",
-    size: "8.7 MB",
-  },
-  {
-    id: "4",
-    title: "Weekly Progress Report #23",
-    date: "2023-12-08",
-    author: "John Smith",
-    status: "revision",
-    type: "weekly",
-    size: "1.9 MB",
-  },
-]
-
-interface ReportsSectionProps {
-  userType: "shareholder" | "team"
-}
-
-export default function ReportsSection({ userType }: ReportsSectionProps) {
-  const [reports] = useState<Report[]>(mockReports)
+export default function ReportsSection() {
+  const { reports, updateReport } = useData()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState<string>("all")
   const [filterStatus, setFilterStatus] = useState<string>("all")
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
@@ -101,6 +54,17 @@ export default function ReportsSection({ userType }: ReportsSectionProps) {
       default:
         return "bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-gray-500/30"
     }
+  }
+
+  const formatDate = (dateString: string) => {
+    if (!isClient) return dateString
+    
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).format(date)
   }
 
   return (
@@ -166,7 +130,7 @@ export default function ReportsSection({ userType }: ReportsSectionProps) {
                     <div className="flex items-center space-x-4 mt-1">
                       <p className="text-sm text-muted-foreground">
                         <Calendar className="w-4 h-4 inline mr-1" />
-                        {new Date(report.date).toLocaleDateString()}
+                        {formatDate(report.date)}
                       </p>
                       <p className="text-sm text-muted-foreground">by {report.author}</p>
                       <p className="text-sm text-muted-foreground">{report.size}</p>
@@ -185,6 +149,15 @@ export default function ReportsSection({ userType }: ReportsSectionProps) {
                       <Download className="w-4 h-4 mr-1" />
                       Download
                     </Button>
+                    {report.status === "pending" && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => updateReport(report.id, { status: "approved" })}
+                      >
+                        Approve
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
